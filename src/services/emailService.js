@@ -22,7 +22,7 @@ class EmailService {
             if (error) {
                 console.error('SMTP Connection Error:', error);
             } else {
-                console.log('SMTP Server is ready to take our messages');
+                
             }
         });
     }
@@ -116,19 +116,22 @@ class EmailService {
     async sendEmail(content) {
         try {
             // Log email configuration (without sensitive data)
-            console.log('Attempting to send email to:', process.env.RECIPIENT_EMAIL);
-            console.log('Using Gmail account:', process.env.EMAIL);
+            
+            
+
+            // Get recipient emails from environment variable (comma-separated)
+            const recipientEmails = process.env.RECIPIENT_EMAIL.split(',').map(email => email.trim());
 
             const mailOptions = {
                 from: `"Daily Network Learning" <${process.env.EMAIL}>`,
-                to: process.env.RECIPIENT_EMAIL,
+                to: recipientEmails.join(', '), // Join multiple emails with comma and space
                 subject: `Daily Network Learning: ${content.title}`,
                 html: this.createEmailContent(content)
             };
 
             const info = await this.transporter.sendMail(mailOptions);
-            console.log('Email sent successfully!');
-            console.log('Message ID:', info.messageId);
+            
+            
         } catch (error) {
             console.error('Error sending email:', error.message);
             if (error.code === 'EAUTH') {

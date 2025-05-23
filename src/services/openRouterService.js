@@ -272,9 +272,13 @@ class OpenRouterService {
                 }
             }
 
-            if (!['A', 'B', 'C', 'D'].includes(quiz.correct)) {
-                throw new Error(`Invalid correct answer in quiz ${index + 1}`);
+            // Clean and validate the correct answer
+            const cleanedCorrect = quiz.correct ? String(quiz.correct).trim().charAt(0).toUpperCase() : '';
+            if (!['A', 'B', 'C', 'D'].includes(cleanedCorrect)) {
+                throw new Error(`Invalid correct answer format or value in quiz ${index + 1}. Received: "${quiz.correct}"`);
             }
+            // Optionally, update the quiz object with the cleaned correct answer
+            quiz.correct = cleanedCorrect;
         });
 
         return true;
@@ -287,7 +291,6 @@ class OpenRouterService {
     async generateContent() {
         try {
             const topic = this.getNextTopic();
-            console.log('Generating content for topic:', topic);
             
             const prompt = `You are a computer networks expert. Generate educational content for "${topic}" in valid JSON format. The response must be a single JSON object with the following structure:
 
@@ -333,12 +336,13 @@ Important:
 2. All strings must be properly escaped
 3. Include exactly 10 quizzes
 4. Each quiz must have 4 choices (A, B, C, D)
-5. The correct answer must be one of A, B, C, or D
+5. The value for the "correct" field in each quiz object *must* be one of the single characters: "A", "B", "C", or "D". No other text or explanation should be included in the "correct" field.
 6. Include at least 5 key points
 7. The explanation should be in points format with approximately 1000 words total (10 points, ~100 words each)
 8. Focus specifically on ${topic}
 9. Each quiz should test different aspects of the topic
-10. Make the explanation comprehensive and detailed, covering all important aspects of the topic`;
+10. Make the explanation comprehensive and detailed, covering all important aspects of the topic
+11. Adhere strictly to the JSON structure provided, especially for the "quizzes" array and the format of each quiz object.`;
 
             const response = await axios.post(
                 `${this.baseURL}/chat/completions`,
@@ -371,18 +375,9 @@ Important:
             console.log('Received response from OpenRouter API');
             
             const contentString = response.data.choices[0].message.content;
-            console.log('Raw content:', contentString);
-
+            
             const content = this.safeJsonParse(contentString);
             this.validateContent(content);
-
-            console.log('Successfully parsed content:', {
-                title: content.title,
-                explanationLength: content.explanation.length,
-                keyPointsCount: content.keyPoints.length,
-                analogyLength: content.analogy.length,
-                quizCount: content.quizzes.length
-            });
 
             return content;
         } catch (error) {

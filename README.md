@@ -104,7 +104,7 @@ The application can be configured through environment variables:
 - `OPENROUTER_API_KEY`: Your OpenRouter API key
 - `EMAIL`: Gmail address for sending emails
 - `APP_PASSWORD`: Gmail App Password
-- `RECIPIENT_EMAIL`: Email address to receive the daily content
+- `RECIPIENT_EMAIL`: Comma-separated list of email addresses to receive the daily content
 
 ## 🛠️ Technologies Used
 

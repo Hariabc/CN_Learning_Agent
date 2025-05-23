@@ -37,30 +37,25 @@ function formatQuizForConsole(quiz, index) {
 async function sendDailyEmail() {
     try {
         runCount++;
-        console.log(`\n=== Starting Run #${runCount} ===`);
-        console.log('Time:', new Date().toLocaleString());
         
-        console.log('\nStep 1: Generating content...');
+        
+        
         const content = await openRouterService.generateContent();
-        console.log('Content generated successfully');
         
-        console.log('\nStep 2: Preparing to send email...');
-        console.log('Recipient:', process.env.RECIPIENT_EMAIL);
         
-        console.log('\nStep 3: Sending email...');
+        
         await emailService.sendEmail(content);
         
         // Fallback console output
-        console.log('\n=== Daily Network Learning Content ===');
-        console.log(`📘 Title: ${content.title}`);
-        console.log(`\n📖 Detailed Explanation:\n${content.explanation}`);
-        console.log(`\n💡 Real-life Analogy:\n${content.analogy}`);
-        console.log('\n❓ Daily Quiz Questions:');
-        content.quizzes.forEach((quiz, index) => {
-            console.log(formatQuizForConsole(quiz, index));
-        });
+        console.log('\n✅ Daily email process completed successfully');
         
-        console.log('\n=== Process Completed Successfully ===');
+        
+        
+        
+        
+        
+        
+        
     } catch (error) {
         console.error('\n❌ Error in daily email process:', error.message);
         if (error.response) {
@@ -69,12 +64,12 @@ async function sendDailyEmail() {
     }
 }
 
-// Schedule the task to run every minute
+// Schedule the daily email using node-cron
 cron.schedule('0 8 * * *', () => {
-    console.log('\n🕗 Running scheduled task at 8 AM...');
+    
     sendDailyEmail();
 });
 
-// Initial run for testing
-console.log('\n🚀 Starting Daily Network Learning Bot...');
+// Run the function immediately when the script starts
+
 sendDailyEmail(); 
