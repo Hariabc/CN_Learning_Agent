@@ -68,6 +68,10 @@ class EmailService {
         const keyPointsHTML = content.keyPoints.map(point => 
             `<li style="margin-bottom: 10px; line-height: 1.6;">${point}</li>`
         ).join('');
+
+        const explanationHTML = content.explanation.map((point, index) => 
+            `<li style="margin-bottom: 15px; line-height: 1.8; text-align: justify;">${point}</li>`
+        ).join('');
         
         return `
             <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
@@ -75,7 +79,9 @@ class EmailService {
                 
                 <div style="background-color: #f8f9fa; padding: 25px; border-radius: 5px; margin: 20px 0;">
                     <h2 style="color: #34495e; margin-bottom: 15px;">📖 Detailed Explanation</h2>
-                    <p style="line-height: 1.8; text-align: justify;">${content.explanation}</p>
+                    <ol style="padding-left: 20px; margin: 0;">
+                        ${explanationHTML}
+                    </ol>
                 </div>
 
                 <div style="background-color: #e8f4f8; padding: 25px; border-radius: 5px; margin: 20px 0;">

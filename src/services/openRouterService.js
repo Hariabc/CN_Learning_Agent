@@ -293,7 +293,18 @@ class OpenRouterService {
 
 {
     "title": "string (the daily topic title)",
-    "explanation": "string (200 words covering key concepts, examples, and practical applications)",
+    "explanation": [
+        "string (point 1)",
+        "string (point 2)",
+        "string (point 3)",
+        "string (point 4)",
+        "string (point 5)",
+        "string (point 6)",
+        "string (point 7)",
+        "string (point 8)",
+        "string (point 9)",
+        "string (point 10)"
+    ],
     "keyPoints": [
         "string (bullet point 1)",
         "string (bullet point 2)",
@@ -320,12 +331,14 @@ class OpenRouterService {
 Important:
 1. The response must be valid JSON
 2. All strings must be properly escaped
-3. Include exactly 1 quiz
-4. The quiz must have 4 choices (A, B, C, D)
+3. Include exactly 10 quizzes
+4. Each quiz must have 4 choices (A, B, C, D)
 5. The correct answer must be one of A, B, C, or D
 6. Include at least 5 key points
-7. The explanation should be approximately 200 words
-8. Focus specifically on ${topic}`;
+7. The explanation should be in points format with approximately 1000 words total (10 points, ~100 words each)
+8. Focus specifically on ${topic}
+9. Each quiz should test different aspects of the topic
+10. Make the explanation comprehensive and detailed, covering all important aspects of the topic`;
 
             const response = await axios.post(
                 `${this.baseURL}/chat/completions`,
