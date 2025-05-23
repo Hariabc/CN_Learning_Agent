@@ -58,8 +58,8 @@ The curriculum covers 30 days of computer networks topics:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/daily-network-email.git
-   cd daily-network-email
+   git clone https://github.com/Hariabc/CN_Learning_Agent.git
+   cd CN_Learning_Agent
    ```
 
 2. Install dependencies:
