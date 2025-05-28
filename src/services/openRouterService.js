@@ -292,7 +292,10 @@ class OpenRouterService {
         try {
             const topic = this.getNextTopic();
             
-            const prompt = `You are a computer networks expert. Generate educational content for "${topic}" in valid JSON format. The response must be a single JSON object with the following structure:
+            const prompt = `You are a computer networks expert. Generate educational content for "${topic}" in valid JSON format. 
+Respond with a single JSON object, and do not include any text outside the JSON object. 
+Do not repeat any keys. Do not include empty objects. Do not include comments. 
+The response must be a single JSON object with the following structure:
 
 {
     "title": "string (the daily topic title)",
@@ -342,7 +345,8 @@ Important:
 8. Focus specifically on ${topic}
 9. Each quiz should test different aspects of the topic
 10. Make the explanation comprehensive and detailed, covering all important aspects of the topic
-11. Adhere strictly to the JSON structure provided, especially for the "quizzes" array and the format of each quiz object.`;
+11. Adhere strictly to the JSON structure provided, especially for the "quizzes" array and the format of each quiz object.
+12. Do not include any text, comments, or explanations outside the JSON object.`;
 
             const response = await axios.post(
                 `${this.baseURL}/chat/completions`,
@@ -375,7 +379,7 @@ Important:
             console.log('Received response from OpenRouter API');
             
             const contentString = response.data.choices[0].message.content;
-            
+            console.log('Raw API response (for debugging):', contentString); // Log the raw response for debugging
             const content = this.safeJsonParse(contentString);
             this.validateContent(content);
 
