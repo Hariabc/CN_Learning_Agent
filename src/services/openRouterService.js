@@ -161,7 +161,7 @@ class OpenRouterService {
         try {
             return JSON.parse(jsonString);
         } catch (error) {
-            console.log('Initial JSON parse failed, attempting to clean the string...');
+
             
             try {
                 // First, try to extract the JSON object
@@ -222,7 +222,6 @@ class OpenRouterService {
                 // Last resort: try to parse the entire response as a quiz
                 const quizMatch = jsonString.match(/Question:\s*(.*?)(?=\s*Choices:|$)/s);
                 if (quizMatch) {
-                    console.log('Attempting to parse response as a single quiz...');
                     const parsedQuiz = this.parseQuizString(jsonString);
                     if (parsedQuiz) {
                         return {
@@ -376,10 +375,7 @@ Important:
                 }
             );
 
-            console.log('Received response from OpenRouter API');
-            
             const contentString = response.data.choices[0].message.content;
-            console.log('Raw API response (for debugging):', contentString); // Log the raw response for debugging
             const content = this.safeJsonParse(contentString);
             this.validateContent(content);
 
