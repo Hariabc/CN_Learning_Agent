@@ -224,6 +224,131 @@ class EmailService {
             throw error;
         }
     }
+
+    /**
+     * Send welcome email to newly subscribed users
+     * @param {string} email - Recipient email
+     * @returns {Promise<Object>} Email sending result
+     */
+    async sendWelcomeEmail(email) {
+        try {
+            const welcomeContent = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h1 style="color: #2c3e50;">🎉 Welcome to Daily Network Learning!</h1>
+                        <p style="color: #7f8c8d; font-size: 18px;">You're now part of our learning community!</p>
+                    </div>
+                    
+                    <div style="background-color: #f8f9fa; padding: 25px; border-radius: 8px; margin: 20px 0;">
+                        <h2 style="color: #34495e; margin-bottom: 15px;"> What to Expect</h2>
+                        <ul style="padding-left: 20px; line-height: 1.8;">
+                            <li><strong>Daily Learning Content:</strong> Computer networks concepts explained in simple terms</li>
+                            <li><strong>Interactive Quizzes:</strong> Test your knowledge with daily questions</li>
+                            <li><strong>Real-life Examples:</strong> Practical analogies to help you understand</li>
+                            <li><strong>Key Points Summary:</strong> Quick reference for important concepts</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background-color: #e8f4f8; padding: 25px; border-radius: 8px; margin: 20px 0;">
+                        <h2 style="color: #34495e; margin-bottom: 15px;"> Your First Email</h2>
+                        <p>Your first learning email will arrive tomorrow at 8:00 AM. Get ready to dive into the fascinating world of computer networks!</p>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee;">
+                        <p style="color: #7f8c8d; font-size: 0.9em;">
+                            <a href="${process.env.UNSUBSCRIBE_URL || 'http://localhost:3000/unsubscribe'}?email=${email}" 
+                               style="color: #3498db; text-decoration: none;">Unsubscribe</a> | 
+                            <a href="${process.env.PREFERENCES_URL || 'http://localhost:3000/preferences'}?email=${email}" 
+                               style="color: #3498db; text-decoration: none;">Update Preferences</a>
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            const mailOptions = {
+                from: `"Daily Network Learning" <${process.env.EMAIL}>`,
+                to: email,
+                subject: '🎉 Welcome to Daily Network Learning!',
+                html: welcomeContent
+            };
+
+            const info = await this.transporter.sendMail(mailOptions);
+            
+            return {
+                success: true,
+                messageId: info.messageId,
+                email: email,
+                type: 'welcome'
+            };
+        } catch (error) {
+            console.error(`Error sending welcome email to ${email}:`, error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * Send goodbye email to unsubscribing users
+     * @param {string} email - Recipient email
+     * @returns {Promise<Object>} Email sending result
+     */
+    async sendGoodbyeEmail(email) {
+        try {
+            const goodbyeContent = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h1 style="color: #2c3e50;"> We'll Miss You!</h1>
+                        <p style="color: #7f8c8d; font-size: 18px;">Sorry to see you go from Daily Network Learning</p>
+                    </div>
+                    
+                    <div style="background-color: #f8f9fa; padding: 25px; border-radius: 8px; margin: 20px 0;">
+                        <h2 style="color: #34495e; margin-bottom: 15px;"> What You'll Miss</h2>
+                        <ul style="padding-left: 20px; line-height: 1.8;">
+                            <li>Daily computer networks learning content</li>
+                            <li>Interactive quizzes and explanations</li>
+                            <li>Real-life analogies and examples</li>
+                            <li>Key points and summaries</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background-color: #e8f4f8; padding: 25px; border-radius: 8px; margin: 20px 0;">
+                        <h2 style="color: #34495e; margin-bottom: 15px;">🔄 Change Your Mind?</h2>
+                        <p>You can always resubscribe anytime by visiting our website. Your learning journey doesn't have to end here!</p>
+                        <p style="margin-top: 15px;">
+                            <a href="${process.env.SUBSCRIBE_URL || 'http://localhost:3000/subscribe'}" 
+                               style="background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                                Resubscribe Now
+                            </a>
+                        </p>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee;">
+                        <p style="color: #7f8c8d; font-size: 0.9em;">
+                            Thank you for being part of our learning community. We hope to see you again soon!
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            const mailOptions = {
+                from: `"Daily Network Learning" <${process.env.EMAIL}>`,
+                to: email,
+                subject: ' Goodbye from Daily Network Learning',
+                html: goodbyeContent
+            };
+
+            const info = await this.transporter.sendMail(mailOptions);
+            
+            return {
+                success: true,
+                messageId: info.messageId,
+                email: email,
+                type: 'goodbye'
+            };
+        } catch (error) {
+            console.error(`Error sending goodbye email to ${email}:`, error.message);
+            throw error;
+        }
+    }
 }
 
 module.exports = new EmailService(); 

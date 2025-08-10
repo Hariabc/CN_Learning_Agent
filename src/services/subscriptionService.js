@@ -31,11 +31,14 @@ class SubscriptionService {
                     // Resubscribe existing user
                     user.isSubscribed = true;
                     user.isActive = true;
+                    user.subscriptionDate = new Date();
                     await user.save();
+                    
                     return {
                         success: true,
                         message: 'User resubscribed successfully',
-                        user: user
+                        user: user,
+                        isResubscribe: true
                     };
                 }
             }
@@ -50,7 +53,8 @@ class SubscriptionService {
             return {
                 success: true,
                 message: 'User subscribed successfully',
-                user: user
+                user: user,
+                isNewUser: true
             };
         } catch (error) {
             console.error(`❌ Error subscribing user ${email}:`, error.message);
@@ -76,6 +80,7 @@ class SubscriptionService {
                 };
             }
 
+            // Mark as unsubscribed
             user.isSubscribed = false;
             await user.save();
 
@@ -176,12 +181,13 @@ class SubscriptionService {
 
     async deleteUser(email) {
         try {
+            // Delete user completely from MongoDB
             const result = await User.deleteOne({ email: email.toLowerCase() });
             
-                    if (result.deletedCount > 0) {
-            return {
+            if (result.deletedCount > 0) {
+                return {
                     success: true,
-                    message: 'User deleted successfully'
+                    message: 'User deleted successfully from database'
                 };
             } else {
                 return {

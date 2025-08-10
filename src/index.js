@@ -85,6 +85,16 @@ app.post('/api/subscribe', async (req, res) => {
         const result = await subscriptionService.subscribeUser(email);
         
         if (result.success) {
+            // Send appropriate email based on subscription type
+            try {
+                if (result.isNewUser || result.isResubscribe) {
+                    await emailService.sendWelcomeEmail(email);
+                }
+            } catch (emailError) {
+                console.error(`Failed to send welcome email to ${email}:`, emailError.message);
+                // Don't fail the subscription if email fails
+            }
+            
             res.status(201).json(result);
         } else {
             res.status(200).json(result);
@@ -116,6 +126,17 @@ app.post('/api/unsubscribe', async (req, res) => {
         }
 
         const result = await subscriptionService.unsubscribeUser(email);
+        
+        if (result.success) {
+            // Send goodbye email
+            try {
+                await emailService.sendGoodbyeEmail(email);
+            } catch (emailError) {
+                console.error(`Failed to send goodbye email to ${email}:`, emailError.message);
+                // Don't fail the unsubscription if email fails
+            }
+        }
+        
         res.json(result);
     } catch (error) {
         console.error('Unsubscription error:', error);
@@ -209,6 +230,47 @@ app.post('/api/test-email', async (req, res) => {
 });
 
 /**
+ * @route   DELETE /api/delete-user
+ * @desc    Completely delete a user from the database (admin endpoint)
+ * @access  Public
+ */
+app.delete('/api/delete-user', async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email is required'
+            });
+        }
+
+        // Send goodbye email before deletion
+        try {
+            await emailService.sendGoodbyeEmail(email);
+        } catch (emailError) {
+            console.error(`Failed to send goodbye email to ${email}:`, emailError.message);
+            // Continue with deletion even if email fails
+        }
+
+        const result = await subscriptionService.deleteUser(email);
+        
+        if (result.success) {
+            res.json(result);
+        } else {
+            res.status(404).json(result);
+        }
+    } catch (error) {
+        console.error('User deletion error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: error.message
+        });
+    }
+});
+
+/**
  * @route   GET /
  * @desc    API documentation and health check endpoint
  * @access  Public
@@ -249,6 +311,12 @@ app.get('/', (req, res) => {
                     method: 'POST',
                     path: '/api/test-email',
                     description: 'Send a test email to verify configuration',
+                    body: { email: 'string' }
+                },
+                deleteUser: {
+                    method: 'DELETE',
+                    path: '/api/delete-user',
+                    description: 'Completely delete a user from the database (sends goodbye email first)',
                     body: { email: 'string' }
                 },
                 health: {
