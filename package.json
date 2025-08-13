@@ -1,7 +1,7 @@
 {
   "name": "cn-learning-api",
   "version": "2.0.0",
-  "description": "RESTful API service for computer networks learning content delivery via email",
+  "description": "RESTful API service for computer networks learning content delivery via email using Groq AI",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

@@ -4,7 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const cron = require('node-cron');
 const database = require('./config/database');
-const openRouterService = require('./services/openRouterService');
+const groqService = require('./services/groqService');
 const emailService = require('./services/emailService');
 const subscriptionService = require('./services/subscriptionService');
 
@@ -49,7 +49,7 @@ function formatQuizForConsole(quiz, index) {
 async function sendDailyEmail() {
     try {
         runCount++;
-        const content = await openRouterService.generateContent();
+        const content = await groqService.generateContent();
         const emailResults = await emailService.sendEmail(content);
         
         if (!emailResults.success) {
@@ -209,7 +209,7 @@ app.post('/api/test-email', async (req, res) => {
         }
 
         // Generate test content
-        const content = await openRouterService.generateContent();
+        const content = await groqService.generateContent();
         
         // Send test email
         const result = await emailService.sendSingleEmail(email, content);
@@ -356,7 +356,7 @@ app.get('/api/health', async (req, res) => {
             },
             subscriptions: stats,
             services: {
-                openRouter: 'operational',
+                groq: 'operational',
                 email: 'operational',
                 cron: 'scheduled'
             }
@@ -378,7 +378,7 @@ app.get('/api/health', async (req, res) => {
  */
 app.get('/api/content', async (req, res) => {
     try {
-        const content = await openRouterService.generateContent();
+        const content = await groqService.generateContent();
         res.json({
             success: true,
             data: content,
@@ -395,7 +395,7 @@ app.get('/api/content', async (req, res) => {
 });
 
 // Schedule the daily email using node-cron (8 AM daily)
-cron.schedule('0 8 * * *', () => {
+cron.schedule('* * * * *', () => {
     sendDailyEmail();
 });
 

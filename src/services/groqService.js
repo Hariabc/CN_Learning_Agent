@@ -1,12 +1,16 @@
 const axios = require('axios');
 
 /**
- * Service for interacting with OpenRouter API to generate educational content
+ * Service for interacting with Groq Cloud API to generate educational content
  */
-class OpenRouterService {
+class GroqService {
     constructor() {
-        this.apiKey = process.env.OPENROUTER_API_KEY;
-        this.baseURL = 'https://openrouter.ai/api/v1';
+        this.apiKey = process.env.GROQ_API_KEY;
+        this.baseURL = 'https://api.groq.com/openai/v1';
+        
+        if (!this.apiKey) {
+            console.warn('⚠️ GROQ_API_KEY environment variable is not set');
+        }
         
         // 30-Day Computer Networks Curriculum
         this.topics = [
@@ -588,7 +592,7 @@ Notice that the "correct" field contains ONLY the letter "A", not the full answe
             const response = await axios.post(
                 `${this.baseURL}/chat/completions`,
                 {
-                    model: "mistralai/mistral-7b-instruct",
+                    model: "llama3-8b-8192",
                     messages: [
                         {
                             role: "system",
@@ -606,8 +610,6 @@ Notice that the "correct" field contains ONLY the letter "A", not the full answe
                 {
                     headers: {
                         'Authorization': `Bearer ${this.apiKey}`,
-                        'HTTP-Referer': 'https://github.com/yourusername/daily-network-email',
-                        'X-Title': 'Daily Network Learning Bot',
                         'Content-Type': 'application/json'
                     }
                 }
@@ -639,4 +641,4 @@ Notice that the "correct" field contains ONLY the letter "A", not the full answe
     }
 }
 
-module.exports = new OpenRouterService(); 
+module.exports = new GroqService(); 
