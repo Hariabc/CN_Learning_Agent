@@ -123,7 +123,7 @@ class EmailService {
     async sendEmail(content) {
         try {
             // Get all active subscriptions
-            const activeSubscriptions = subscriptionService.getActiveSubscriptions();
+            const activeSubscriptions = await subscriptionService.getActiveSubscriptions();
             
             if (activeSubscriptions.length === 0) {
                 return {

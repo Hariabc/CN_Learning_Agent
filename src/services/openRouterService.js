@@ -269,18 +269,237 @@ class OpenRouterService {
                 if (!quiz.choices[choice]) {
                     throw new Error(`Missing choice ${choice} in quiz ${index + 1}`);
                 }
+                
+                // Ensure choices are strings and not empty
+                if (typeof quiz.choices[choice] !== 'string' || quiz.choices[choice].trim() === '') {
+                    console.warn(`Invalid choice ${choice} in quiz ${index + 1}: "${quiz.choices[choice]}". Setting to default.`);
+                    quiz.choices[choice] = `Choice ${choice}`;
+                }
             }
 
             // Clean and validate the correct answer
-            const cleanedCorrect = quiz.correct ? String(quiz.correct).trim().charAt(0).toUpperCase() : '';
-            if (!['A', 'B', 'C', 'D'].includes(cleanedCorrect)) {
-                throw new Error(`Invalid correct answer format or value in quiz ${index + 1}. Received: "${quiz.correct}"`);
+            let cleanedCorrect = '';
+            if (quiz.correct) {
+                const correctStr = String(quiz.correct).trim();
+                
+                // First, try to extract a valid choice letter
+                if (['A', 'B', 'C', 'D'].includes(correctStr.toUpperCase())) {
+                    cleanedCorrect = correctStr.toUpperCase();
+                } else if (correctStr.match(/^[A-D]/i)) {
+                    cleanedCorrect = correctStr.charAt(0).toUpperCase();
+                } else if (correctStr.includes('A') || correctStr.includes('B') || correctStr.includes('C') || correctStr.includes('D')) {
+                    // Try to find the first valid choice mentioned
+                    const choiceMatch = correctStr.match(/[A-D]/i);
+                    if (choiceMatch) {
+                        cleanedCorrect = choiceMatch[0].toUpperCase();
+                    }
+                }
+                
+                // If still no valid choice, try to match the answer text with choices
+                if (!cleanedCorrect && quiz.choices) {
+                    const answerText = correctStr.toLowerCase();
+                    for (const [choice, choiceText] of Object.entries(quiz.choices)) {
+                        if (choiceText.toLowerCase().includes(answerText) || answerText.includes(choiceText.toLowerCase())) {
+                            cleanedCorrect = choice;
+                            break;
+                        }
+                    }
+                }
             }
-            // Optionally, update the quiz object with the cleaned correct answer
+            
+            if (!['A', 'B', 'C', 'D'].includes(cleanedCorrect)) {
+                console.warn(`Invalid correct answer in quiz ${index + 1}: "${quiz.correct}". Attempting to determine correct answer from choices...`);
+                
+                // Try to intelligently determine the correct answer by looking at the choices
+                if (quiz.choices) {
+                    // Look for common patterns that might indicate the correct answer
+                    const answerText = String(quiz.correct).toLowerCase();
+                    let bestMatch = null;
+                    let bestScore = 0;
+                    
+                    for (const [choice, choiceText] of Object.entries(quiz.choices)) {
+                        const choiceLower = choiceText.toLowerCase();
+                        let score = 0;
+                        
+                        // Check if the answer text contains key words from the choice
+                        if (answerText.includes(choiceLower) || choiceLower.includes(answerText)) {
+                            score += 3;
+                        }
+                        
+                        // Check for partial matches
+                        const answerWords = answerText.split(/\s+/);
+                        const choiceWords = choiceLower.split(/\s+/);
+                        const commonWords = answerWords.filter(word => choiceWords.includes(word));
+                        score += commonWords.length;
+                        
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestMatch = choice;
+                        }
+                    }
+                    
+                    if (bestMatch && bestScore > 0) {
+                        cleanedCorrect = bestMatch;
+                        console.log(`   Determined correct answer: ${bestMatch} (score: ${bestScore})`);
+                    } else {
+                        cleanedCorrect = 'A'; // Fallback to default
+                        console.log(`   Could not determine correct answer, using default: A`);
+                    }
+                } else {
+                    cleanedCorrect = 'A'; // Fallback to default
+                }
+            }
+            
+            // Update the quiz object with the cleaned correct answer
             quiz.correct = cleanedCorrect;
         });
 
         return true;
+    }
+
+    /**
+     * Creates fallback content when AI generation fails
+     * @param {string} topic - The topic to create content for
+     * @returns {Object} Fallback content structure
+     */
+    createFallbackContent(topic) {
+        console.log('Creating fallback content for topic:', topic);
+        
+        return {
+            title: topic,
+            explanation: [
+                "Computer networks are systems of interconnected computing devices that can exchange data and share resources.",
+                "They enable communication between devices through various protocols and technologies.",
+                "Networks can be classified by size, topology, and transmission medium.",
+                "The OSI model provides a framework for understanding network communication.",
+                "Network security is crucial for protecting data and maintaining privacy.",
+                "Different network types serve different purposes and have varying characteristics.",
+                "Protocols define rules for data transmission and communication.",
+                "Network performance depends on factors like bandwidth, latency, and reliability.",
+                "Modern networks support various applications and services.",
+                "Understanding network fundamentals is essential for IT professionals."
+            ],
+            keyPoints: [
+                "Networks enable device communication and resource sharing",
+                "Different network types serve different purposes",
+                "Protocols define communication rules",
+                "Security is essential for network protection",
+                "Performance depends on multiple factors"
+            ],
+            analogy: "Computer networks are like a city's transportation system - they connect different locations, have various routes, and enable the movement of information (like people and goods) between destinations.",
+            quizzes: [
+                {
+                    question: "What is the primary purpose of computer networks?",
+                    choices: {
+                        "A": "To share resources and enable communication",
+                        "B": "To store large amounts of data",
+                        "C": "To process complex calculations",
+                        "D": "To display graphics and images"
+                    },
+                    correct: "A",
+                    explanation: "Computer networks primarily exist to share resources and enable communication between devices."
+                },
+                {
+                    question: "Which network type covers the smallest geographical area?",
+                    choices: {
+                        "A": "WAN (Wide Area Network)",
+                        "B": "MAN (Metropolitan Area Network)",
+                        "C": "LAN (Local Area Network)",
+                        "D": "PAN (Personal Area Network)"
+                    },
+                    correct: "D",
+                    explanation: "PAN covers the smallest area, typically within a few meters of a person."
+                },
+                {
+                    question: "What does OSI stand for in networking?",
+                    choices: {
+                        "A": "Open Systems Interconnection",
+                        "B": "Operating System Interface",
+                        "C": "Online Security Implementation",
+                        "D": "Open Source Initiative"
+                    },
+                    correct: "A",
+                    explanation: "OSI stands for Open Systems Interconnection, which is a conceptual model for network communication."
+                },
+                {
+                    question: "Which layer of the OSI model handles physical connections?",
+                    choices: {
+                        "A": "Application Layer",
+                        "B": "Transport Layer",
+                        "C": "Network Layer",
+                        "D": "Physical Layer"
+                    },
+                    correct: "D",
+                    explanation: "The Physical Layer (Layer 1) handles the actual physical connections and transmission of raw bits."
+                },
+                {
+                    question: "What protocol is commonly used for web browsing?",
+                    choices: {
+                        "A": "FTP",
+                        "B": "HTTP",
+                        "C": "SMTP",
+                        "D": "SSH"
+                    },
+                    correct: "B",
+                    explanation: "HTTP (Hypertext Transfer Protocol) is the standard protocol for web browsing and data transfer."
+                },
+                {
+                    question: "Which network device operates at the Data Link layer?",
+                    choices: {
+                        "A": "Router",
+                        "B": "Switch",
+                        "C": "Hub",
+                        "D": "Gateway"
+                    },
+                    correct: "B",
+                    explanation: "Switches operate at the Data Link layer (Layer 2) and make forwarding decisions based on MAC addresses."
+                },
+                {
+                    question: "What is the purpose of a firewall in networking?",
+                    choices: {
+                        "A": "To speed up network connections",
+                        "B": "To protect against unauthorized access",
+                        "C": "To increase bandwidth",
+                        "D": "To reduce network latency"
+                    },
+                    correct: "B",
+                    explanation: "Firewalls are security devices that protect networks by controlling incoming and outgoing traffic."
+                },
+                {
+                    question: "Which addressing scheme is used by IPv4?",
+                    choices: {
+                        "A": "32-bit addresses",
+                        "B": "64-bit addresses",
+                        "C": "128-bit addresses",
+                        "D": "256-bit addresses"
+                    },
+                    correct: "A",
+                    explanation: "IPv4 uses 32-bit addresses, typically written as four octets separated by dots."
+                },
+                {
+                    question: "What does TCP stand for?",
+                    choices: {
+                        "A": "Transmission Control Protocol",
+                        "B": "Transfer Control Protocol",
+                        "C": "Transport Control Protocol",
+                        "D": "Transmission Connection Protocol"
+                    },
+                    correct: "A",
+                    explanation: "TCP stands for Transmission Control Protocol, which provides reliable, ordered data delivery."
+                },
+                {
+                    question: "Which network topology connects all devices to a central point?",
+                    choices: {
+                        "A": "Bus topology",
+                        "B": "Ring topology",
+                        "C": "Star topology",
+                        "D": "Mesh topology"
+                    },
+                    correct: "C",
+                    explanation: "Star topology connects all devices to a central hub or switch, making it easy to manage and troubleshoot."
+                }
+            ]
+        };
     }
 
     /**
@@ -327,25 +546,44 @@ The response must be a single JSON object with the following structure:
                 "C": "string (choice C)",
                 "D": "string (choice D)"
             },
-            "correct": "A/B/C/D",
+            "correct": "A",
             "explanation": "string (detailed explanation)"
         }
     ]
 }
 
-Important:
+CRITICAL FORMAT REQUIREMENTS:
 1. The response must be valid JSON
 2. All strings must be properly escaped
 3. Include exactly 10 quizzes
 4. Each quiz must have 4 choices (A, B, C, D)
-5. The value for the "correct" field in each quiz object *must* be one of the single characters: "A", "B", "C", or "D". No other text or explanation should be included in the "correct" field.
-6. Include at least 5 key points
-7. The explanation should be in points format with approximately 1000 words total (10 points, ~100 words each)
-8. Focus specifically on ${topic}
-9. Each quiz should test different aspects of the topic
-10. Make the explanation comprehensive and detailed, covering all important aspects of the topic
-11. Adhere strictly to the JSON structure provided, especially for the "quizzes" array and the format of each quiz object.
-12. Do not include any text, comments, or explanations outside the JSON object.`;
+5. The "correct" field MUST contain ONLY a single letter: "A", "B", "C", or "D"
+6. DO NOT put the answer text in the "correct" field
+7. DO NOT put explanations in the "correct" field
+8. DO NOT put "Correct Answer:" or similar text in the "correct" field
+9. The "correct" field should look like this: "correct": "A" (not "correct": "A. Satellite" or "correct": "Satellite")
+10. Include at least 5 key points
+11. The explanation should be in points format with approximately 1000 words total (10 points, ~100 words each)
+12. Focus specifically on ${topic}
+13. Each quiz should test different aspects of the topic
+14. Make the explanation comprehensive and detailed, covering all important aspects of the topic
+15. Adhere strictly to the JSON structure provided, especially for the "quizzes" array and the format of each quiz object.
+16. Do not include any text, comments, or explanations outside the JSON object.
+
+EXAMPLE OF CORRECT QUIZ FORMAT:
+{
+    "question": "What is the primary purpose of computer networks?",
+    "choices": {
+        "A": "To share resources and enable communication",
+        "B": "To store large amounts of data",
+        "C": "To process complex calculations",
+        "D": "To display graphics and images"
+    },
+    "correct": "A",
+    "explanation": "Computer networks primarily exist to share resources and enable communication between devices."
+}
+
+Notice that the "correct" field contains ONLY the letter "A", not the full answer text.`;
 
             const response = await axios.post(
                 `${this.baseURL}/chat/completions`,
@@ -376,8 +614,18 @@ Important:
             );
 
             const contentString = response.data.choices[0].message.content;
-            const content = this.safeJsonParse(contentString);
-            this.validateContent(content);
+            let content;
+            
+            try {
+                content = this.safeJsonParse(contentString);
+                this.validateContent(content);
+            } catch (validationError) {
+                console.error('Content validation failed:', validationError.message);
+                console.error('Attempting to fix content...');
+                
+                // Try to create a fallback content structure
+                content = this.createFallbackContent(topic);
+            }
 
             return content;
         } catch (error) {

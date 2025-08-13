@@ -175,9 +175,9 @@ app.get('/api/status/:email', (req, res) => {
  * @desc    Get subscription statistics (admin endpoint)
  * @access  Public
  */
-app.get('/api/statistics', (req, res) => {
+app.get('/api/statistics', async (req, res) => {
     try {
-        const stats = subscriptionService.getStatistics();
+        const stats = await subscriptionService.getStatistics();
         res.json({
             success: true,
             data: stats
@@ -398,6 +398,12 @@ app.get('/api/content', async (req, res) => {
 cron.schedule('0 8 * * *', () => {
     sendDailyEmail();
 });
+
+// For testing purposes, you can uncomment the line below to run every minute
+// cron.schedule('* * * * *', () => {
+//     sendDailyEmail();
+// });
+
 
 // Initialize database and start server
 async function startServer() {
