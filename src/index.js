@@ -395,7 +395,7 @@ app.get('/api/content', async (req, res) => {
 });
 
 // Schedule the daily email using node-cron (8 AM daily)
-cron.schedule('* * * * *', () => {
+cron.schedule('0 8 * * *', () => {
     sendDailyEmail();
 });
 
