@@ -592,7 +592,7 @@ Notice that the "correct" field contains ONLY the letter "A", not the full answe
             const response = await axios.post(
                 `${this.baseURL}/chat/completions`,
                 {
-                    model: "llama3-8b-8192",
+                    model: "llama-3.3-70b-versatile",
                     messages: [
                         {
                             role: "system",
